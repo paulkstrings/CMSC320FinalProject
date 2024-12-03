@@ -298,6 +298,7 @@ We're finally done! Time to take a look at our results.
 
 ## Visualization
 First, let's look at which factors have the largest influence on our predictions. 
+![](Experience.jpg)
 
 
 ## Insights and Conclusions
