@@ -141,7 +141,12 @@ if p_value < alpha:
 else:
     print("Fail to reject the null hypothesis: no significant correlation.")
 ```
-![Points vs Minutes Plot](RPG_Plot.jpg)``
+![Points vs Minutes Plot](Points_Minutes.jpg)
+As we can see, there is a clear linear correlation between minutes per game and points per game, as we would expect. 
+
+### Does more experience in the NBA lead to increased performance?
+Generally, players who last in the NBA for many years are the most talented players who are able to sustain a high level of play even as they age. Therefore, it would make sense that the longer you've been in the league, the better your performance would be. To determine if this is the case, we'll use the total_contributions_per_game stat we created earlier.
+
 
 
 
