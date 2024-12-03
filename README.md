@@ -46,7 +46,48 @@ Finally, we're going to create a new column called total_contributions_per_game,
 ```python
 player_per_game['total_contributions_per_game'] = (player_per_game['pts_per_game'] + player_per_game['trb_per_game'] + player_per_game['ast_per_game'])
 ```
-Now, we'll move on to the player_award_shares dataframe.
+Now, we'll move on to the player_award_shares dataframe. This one is a bit more complicated to work with. If a player is nominated for multiple awards in the same season, such as MVP and DPOY, those two nominations are given separate entries. In order to be able to eventually merge this with the player_per_game dataframe, we want to have only one entry per player per season, so we'll have to combine them somehow.   
+First, we'll create a list containing all of the awards we have data for and create columns for each of the awards.
+```python
+awards = ['clutch_poy', 'dpoy', 'mip', 'nba mvp', 'nba roy', 'smoy']
+award_columns = []
+for award in awards:
+  award_columns.append(f'{award.lower().replace(" ", "_")}_first')
+  award_columns.append(f'{award.lower().replace(" ", "_")}_pts_won')
+  award_columns.append(f'{award.lower().replace(" ", "_")}_share')
+  award_columns.append(f'{award.lower().replace(" ", "_")}_winner')
+```
+Next, pivot the table to add the award columns, filling in any empty spots with the appropriate value:
+```python
+award_pivot = player_award_shares.pivot_table(
+    index=['player_id', 'seas_id', 'season', 'player', 'age', 'tm'],
+    columns='award',
+    values=['first', 'pts_won', 'share', 'winner'],
+    aggfunc={'first' : 'sum', 'pts_won' : 'sum', 'share' : 'sum', 'winner' : 'any'}, 
+    fill_value=0
+)
+
+award_pivot.columns = [f'{col[1].lower().replace(" ", "_")}_{col[0]}' for col in award_pivot.columns]
+award_pivot = award_pivot.reset_index()
+
+for award in awards:
+    winner_col = f'{award.lower().replace(" ", "_")}_winner'
+    award_pivot[winner_col] = award_pivot[winner_col].astype(bool)
+```
+Finally, we can merge the player_per_game and player_award_shares dataframes together into a single dataframe that will contain all the information we need. We'll fill in the award data for players who weren't nominated for awards with the appropriate values.
+```python
+final_merged_data = pd.merge(player_per_game, award_pivot, on=['player_id', 'seas_id'], how='left')
+
+award_share_columns = [f'{award.lower().replace(" ", "_")}_pts_won' for award in awards] + \
+                      [f'{award.lower().replace(" ", "_")}_share' for award in awards]
+final_merged_data[award_share_columns] = final_merged_data[award_share_columns].fillna(0)
+
+winner_columns = [f'{award.lower().replace(" ", "_")}_winner' for award in awards]
+final_merged_data[winner_columns] = final_merged_data[winner_columns].fillna(False)
+```
+
+Our dataframe is ready for work, and we can now move on to the next step.
+
 ## Exploratory Data Analysis
 
 ## Primary Analysis
