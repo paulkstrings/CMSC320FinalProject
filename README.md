@@ -89,6 +89,34 @@ final_merged_data[winner_columns] = final_merged_data[winner_columns].fillna(Fal
 Our dataframe is ready for work, and we can now move on to the next step.
 
 ## Exploratory Data Analysis
+Now that we have our dataframe ready to go, we can perform some basic analysis to get a sense for the data. To do this, I decided to test some hypotheses I had about certain factors that could impact a player's performance.
+### Does a player's position impact their rebounding numbers?
+Intuition would tell you that centers and power forwards, who are generally the tallest players on the court, would get more rebounds per game than players in other positions. Let's see if that's really true!   
+We'll use an ANOVA test for this since we have multiple categories that we will be comparing to see if there is any significant difference between them.   
+We can use seaborn to make a box plot with position on the x-axis and rebounds per game on the y-axis.
+```python
+plt.figure()
+sns.boxplot(data=final_merged_data, x='pos', y='trb_per_game')
+plt.title("Rebounds per Game by Position")
+plt.xlabel("Position")
+plt.ylabel("Rebounds per Game")
+plt.grid(True)
+plt.show()
+
+grouped_data = [group['trb_per_game'].values for name, group in final_merged_data.groupby('pos')]
+
+f_stat, p_value = f_oneway(*grouped_data)
+
+print(f"F-statistic: {f_stat}, p-value: {p_value}")
+alpha = 0.05
+if p_value < alpha:
+    print("There is a significant difference in rebounds per game between positions.")
+else:
+    print("There is no significant difference in rebounds per game between positions.")
+```
+This results in the following plot:   
+![alt text](RPG_Plot.jpg)
+
 
 ## Primary Analysis
 
