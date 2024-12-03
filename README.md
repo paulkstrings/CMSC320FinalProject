@@ -115,7 +115,36 @@ else:
     print("There is no significant difference in rebounds per game between positions.")
 ```
 This results in the following plot:   
-![alt text](RPG_Plot.jpg)
+![Rebounds per Game Plot](RPG_Plot.jpg)
+As we can see, centers and power forwards have the highest average rebounds per game, and the ANOVA test determined that there is a significant difference in rebounds per game between positions.
+
+### Does playing more minutes lead to scoring more points?
+Common sense would suggest that players who play more would score more points, both since they have more opportunities and because they are generally better than those who only play a small amount. Let's check to be sure, though.   
+We'll use a Pearson correlation test here, since we are measuring the correlation between two variables, minutes per game and points per game, and we would expect them to be linearly correlated. We'll create a scatter plot with every season and plot the line of best fit to see if it is linear.
+```python
+corr, p_value = pearsonr(final_merged_data['mp_per_game'], final_merged_data['pts_per_game'])
+
+plt.figure(figsize=(12, 6))
+sns.regplot(x='mp_per_game', y='pts_per_game', data=final_merged_data, scatter_kws={'alpha':0.5})
+plt.title('Correlation Between Minutes Played and Points Per Game')
+plt.xlabel('Minutes Per Game')
+plt.ylabel('Points Per Game')
+plt.grid(True)
+plt.text(0.1, 0.9, f'Correlation coefficient: {corr:.2f}\np-value: {p_value:.2g}',
+         horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+plt.show()
+
+# Interpret the results
+alpha = 0.05
+if p_value < alpha:
+    print("Reject the null hypothesis: significant correlation between minutes played and points scored.")
+else:
+    print("Fail to reject the null hypothesis: no significant correlation.")
+```
+![Points vs Minutes Plot](RPG_Plot.jpg)``
+
+
+
 
 
 ## Primary Analysis
