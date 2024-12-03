@@ -116,6 +116,7 @@ else:
 ```
 This results in the following plot:   
 ![Rebounds per Game Plot](RPG_Plot.jpg)
+<br>
 As we can see, centers and power forwards have the highest average rebounds per game, and the ANOVA test determined that there is a significant difference in rebounds per game between positions.
 
 ### Does playing more minutes lead to scoring more points?
@@ -141,6 +142,7 @@ else:
     print("Fail to reject the null hypothesis: no significant correlation.")
 ```
 ![Points vs Minutes Plot](Points_Minutes.jpg)
+<br>
 As we can see, there is a clear linear correlation between minutes per game and points per game, as we would expect. 
 
 ### Does more experience in the NBA lead to increased performance?
@@ -166,6 +168,7 @@ plt.show()
 print(model.summary())
 ```
 ![Experience Plot](Experience.jpg)
+<br>
 As shown in the plot, experience is positively correlated with higher production. Therefore, we can safely say that players with more experience in the NBA perform better than less experienced players.
 
 ## Primary Analysis
@@ -298,22 +301,24 @@ We're finally done! Time to take a look at our results.
 
 ## Visualization
 First, let's look at which factors have the largest influence on our predictions. 
-![Important Stats](important_stats.jpg)
+![Important Stats](important_stats.jpg)   
+<br>
 As we can see, the player's points per game in the previous season has the highest predictive power when it comes to predicting the MVP for the next season. This makes sense, as points are the most important stat in basketball, and scoring a lot of points last season is a strong indicator that a player will score a lot of points this season. In fact, the second most important metric is the points per game two seasons ago, which underscores how important scoring is in the MVP race. All of the other features are roughly equal, although notably experience is the least predictive feature. This is somewhat surprising, as I thought that experienced players are generally better and among the top contenders for the MVP award.   
    
 Now, let's look at who the model predicted to win the three awards, starting with MVP.
+
 ![Predicted MVP](predicted_mvp.jpg)   
+<br>
 Nikola Jokic was the model's pick for next season's MVP. As a 3-time winner of the award (including last year), he's definitely a good bet to win this year, and in fact, as of December 2024, he's the betting favorite in Vegas. Other predicted contenders include Giannis, Embiid, and SGA, of whom Giannis and SGA are in the top 4 in terms of betting odds.   
 
 ![Predicted DPOY](predicted_dpoy_players.jpg)   
+<br>
 The model also predicts Jokic to win the Defensive Player of the Year award. This is a slightly more questionable pick, as Jokic isn't really known for being an exceptional defender. However, the rest of the list is much more in line with expectations. Rudy Gobert is a four-time DPOY winner, and Jaren Jackson Jr. is the second favorite for the award in terms of odds (The favorite, Victor Wembanyama, was not included in our analysis since last year was his rookie season). This award seems like it would be harder to predict than the MVP award, though, since defense in basketball is largely "intangibles" and is harder to measure in hard numbers.   
 
 ![Predicted MIP](predicted_mip_players.jpg)   
+<br>
 Finally, for Most Improved Player, the model goes for Tyrese Maxey, with Coby White coming in second. Remarkably, these were the top two players in voting for the award last year, with Maxey winning and White coming in second. So although they probably won't win this year, the model was only one year off. Some of the players on this list are already established stars, and thus won't win the award (SGA, Brunson, and Garland), but the others are all young players with a lot of upside who, with a good year, could have a chance to win. In particular, Anfernee Simons and Deni Avdija both currently have good odds to win the award this year.   
 
 ## Insights and Conclusions
 
 After reading this tutorial, you should understand how to use data science techniques such as statistical tests machine learning to find patterns in and make predictions from large data sets. We used numerous python libraries such as pandas, seaborn, and scikit-learn, all of which fulfilled different roles in the project. Our model turned out to be relatively successful, and although it had a few questionable predictions, for the most part it had very reasonable results. To make the model more accurate, it would help to include statistics on team performance, as that often has a role in MVP voting, since it's important for a MVP-caliber player to lead his team to success. Overall, though, this project was a success, and it produced some strong contenders for this year's awards.
-
-
-
