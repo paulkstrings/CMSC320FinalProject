@@ -308,15 +308,15 @@ As we can see, the player's points per game in the previous season has the highe
 Now, let's look at who the model predicted to win the three awards, starting with MVP.
 
 ![Predicted MVP](predicted_mvp.jpg)   
-<br>
+<br>   
 Nikola Jokic was the model's pick for next season's MVP. As a 3-time winner of the award (including last year), he's definitely a good bet to win this year, and in fact, as of December 2024, he's the betting favorite in Vegas. Other predicted contenders include Giannis, Embiid, and SGA, of whom Giannis and SGA are in the top 4 in terms of betting odds.   
 
 ![Predicted DPOY](predicted_dpoy_players.jpg)   
-<br>
+<br>   
 The model also predicts Jokic to win the Defensive Player of the Year award. This is a slightly more questionable pick, as Jokic isn't really known for being an exceptional defender. However, the rest of the list is much more in line with expectations. Rudy Gobert is a four-time DPOY winner, and Jaren Jackson Jr. is the second favorite for the award in terms of odds (The favorite, Victor Wembanyama, was not included in our analysis since last year was his rookie season). This award seems like it would be harder to predict than the MVP award, though, since defense in basketball is largely "intangibles" and is harder to measure in hard numbers.   
 
 ![Predicted MIP](predicted_mip_players.jpg)   
-<br>
+<br>   
 Finally, for Most Improved Player, the model goes for Tyrese Maxey, with Coby White coming in second. Remarkably, these were the top two players in voting for the award last year, with Maxey winning and White coming in second. So although they probably won't win this year, the model was only one year off. Some of the players on this list are already established stars, and thus won't win the award (SGA, Brunson, and Garland), but the others are all young players with a lot of upside who, with a good year, could have a chance to win. In particular, Anfernee Simons and Deni Avdija both currently have good odds to win the award this year.   
 
 ## Insights and Conclusions
