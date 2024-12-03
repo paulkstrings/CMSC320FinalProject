@@ -134,7 +134,6 @@ plt.text(0.1, 0.9, f'Correlation coefficient: {corr:.2f}\np-value: {p_value:.2g}
          horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
 plt.show()
 
-# Interpret the results
 alpha = 0.05
 if p_value < alpha:
     print("Reject the null hypothesis: significant correlation between minutes played and points scored.")
@@ -145,16 +144,161 @@ else:
 As we can see, there is a clear linear correlation between minutes per game and points per game, as we would expect. 
 
 ### Does more experience in the NBA lead to increased performance?
-Generally, players who last in the NBA for many years are the most talented players who are able to sustain a high level of play even as they age. Therefore, it would make sense that the longer you've been in the league, the better your performance would be. To determine if this is the case, we'll use the total_contributions_per_game stat we created earlier.
+Generally, players who last in the NBA for many years are the most talented players who are able to sustain a high level of play even as they age. Therefore, it would make sense that the longer you've been in the league, the better your performance would be. To determine if this is the case, we'll use the total_contributions_per_game stat we created earlier.   
+For this, we'll use a linear regression analysis to determine how the trend of the data looks.
+```python
+X = final_merged_data['experience']
+y = final_merged_data['total_contributions_per_game']
+X = sm.add_constant(X)
 
+model = sm.OLS(y, X).fit()
 
+plt.figure(figsize=(12, 6))
+sns.regplot(x='experience', y='total_contributions_per_game', data=final_merged_data, scatter_kws={'alpha':0.5})
+plt.title('Impact of Experience on Performance')
+plt.xlabel('Experience (Years)')
+plt.ylabel('Total Contributions (Points + Rebounds + Assists) per Game')
+plt.grid(True)
+plt.text(0.1, 0.9, f'R²: {model.rsquared:.2f}\np-value: {model.pvalues[1]:.2g}',
+         horizontalalignment='center', verticalalignment='center', transform=plt.gca().transAxes)
+plt.show()
 
-
-
+print(model.summary())
+```
+![Experience Plot](Experience.jpg)
+As shown in the plot, experience is positively correlated with higher production. Therefore, we can safely say that players with more experience in the NBA perform better than less experienced players.
 
 ## Primary Analysis
+Now we're going to use machine learning to make some predictions about the upcoming NBA season. We'll predict the winners of the MVP, DPOY, and Most Improved Player awards by looking at the performance of past winners.   
+First, let's sort our dataframe by player name and season.
+```python
+final_merged_data = final_merged_data.sort_values(by=['player_x', 'season_x'])
+```
+Since we're making predictions without any statistics for the current season, only past years, we're going to look at the previous two seasons for each award winner. For example, if Stephen Curry won the MVP award in 2015, we'll look at his 2013 and 2014 statistics as a predictive measure. We can then compare those to the stats of current players for the 2023 and 2024 seasons to see who may be on track for a MVP season.   
+First, we need to create lag features to capture the players' performance over their previous two seasons.
+```python
+for lag in [1, 2]:
+    for stat in ['pts_per_game', 'ast_per_game', 'trb_per_game', 'stl_per_game', 'blk_per_game']:
+        final_merged_data[f'{stat}_lag{lag}'] = final_merged_data.groupby('player_x')[stat].shift(lag)
+```
+Now, we'll drop entries with NaNs in the lag columns. Unfortunately this will exclude players who were rookies last year, but it is extremely rare for a player to win MVP in their second year, and it is important to have more than one season of data to avoid outliers.
+```python
+final_merged_data = final_merged_data.dropna(subset=['pts_per_game_lag1', 'pts_per_game_lag2'])
+```
+Next, we create binary labels for each award based on whether the player won that season.
+```python
+final_merged_data['mvp_share'] = final_merged_data['nba_mvp_share'].fillna(0)
+final_merged_data['dpoy_share'] = final_merged_data['dpoy_share'].fillna(0)
+final_merged_data['mip_share'] = final_merged_data['mip_share'].fillna(0)
+```
+Now we'll make a list of the features we'll use to predict the award winners, which includes the lag features we created earlier as well as the player's experience in the league.
+```python
+features = [
+    'pts_per_game_lag1', 'ast_per_game_lag1', 'trb_per_game_lag1', 'stl_per_game_lag1', 'blk_per_game_lag1',
+    'pts_per_game_lag2', 'ast_per_game_lag2', 'trb_per_game_lag2', 'stl_per_game_lag2', 'blk_per_game_lag2', 'experience'
+]
+
+X = final_merged_data[features]
+y_mvp = final_merged_data['mvp_share']
+y_dpoy = final_merged_data['dpoy_share']
+y_mip = final_merged_data['mip_share']
+```
+Next, we'll split the data into training and testing groups using train_test_split, with 80% being used for training and 20% for testing. 
+```python
+X_train, X_test, y_train_mvp, y_test_mvp = train_test_split(X, y_mvp, test_size=0.2, random_state=42)
+X_train, X_test, y_train_dpoy, y_test_dpoy = train_test_split(X, y_dpoy, test_size=0.2, random_state=42)
+X_train, X_test, y_train_mip, y_test_mip = train_test_split(X, y_mip, test_size=0.2, random_state=42)
+```
+Next, we'll initialize random forest regressors for each award category. We are using regression instead of classification since there are so few players who have actually won an award (only one per season), that it was difficult for the model to learn. By using the share of votes instead, it includes all players who received votes for an award, greatly increasing the sample size. Therefore, we must use regression, since we are predicting the vote share based on their previous seasons.
+```python
+rf_mvp = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_dpoy = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_mip = RandomForestRegressor(n_estimators=100, random_state=42)
+```
+Now we can fit the models and use them to make predictions on the test data.
+```python
+rf_mvp.fit(X_train, y_train_mvp)
+rf_dpoy.fit(X_train, y_train_dpoy)
+rf_mip.fit(X_train, y_train_mip)
+
+y_pred_mvp = rf_mvp.predict(X_test)
+y_pred_dpoy = rf_dpoy.predict(X_test)
+y_pred_mip = rf_mip.predict(X_test)
+```
+Next, we'll create a function that determines which of our features have the highest importance for predicting the MVP winner, or the strongest correlation with the expected results. Again, we'll look at the results later.
+```python
+def plot_feature_importance(rf_model, features, title):
+    feature_importances = rf_model.feature_importances_
+    features_sorted = sorted(zip(features, feature_importances), key=lambda x: x[1], reverse=True)
+    
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x=[x[0] for x in features_sorted], y=[x[1] for x in features_sorted])
+    plt.title(title)
+    plt.xlabel("Feature")
+    plt.ylabel("Importance")
+    plt.xticks(rotation=45)
+    plt.show()
+
+plot_feature_importance(rf_mvp, features, "Feature Importance for MVP Prediction")
+```
+Now it's time to use our model to make our predictions for the upcoming season. First, we need to aggregate the player stats from 2023 and 2024 to create a new dataset to test the model on.
+```python
+recent_season_data = final_merged_data[final_merged_data['season_x'].isin([2023, 2024])]
+test_data_aggregated = recent_season_data.groupby('player_x').agg({
+    'pts_per_game_lag1': 'mean',
+    'ast_per_game_lag1': 'mean',
+    'trb_per_game_lag1': 'mean',
+    'stl_per_game_lag1': 'mean',
+    'blk_per_game_lag1': 'mean',
+    'pts_per_game_lag2': 'mean',
+    'ast_per_game_lag2': 'mean',
+    'trb_per_game_lag2': 'mean',
+    'stl_per_game_lag2': 'mean',
+    'blk_per_game_lag2': 'mean',
+    'nba_mvp_share': 'mean',
+    'dpoy_share': 'mean',
+    'mip_share': 'mean',
+    'experience': 'mean'
+}).reset_index()
+```
+Next, we'll define our features and labels again for the new dataset and then make our predictions! We'll store our results in a new dataframe called predictions_2025 so we can access them.
+```python
+X_test_aggregated = test_data_aggregated[features]
+y_test_mvp = test_data_aggregated['nba_mvp_share']
+y_test_dpoy = test_data_aggregated['dpoy_share']
+y_test_mip = test_data_aggregated['mip_share']
+
+y_pred_mvp_2025 = rf_mvp.predict(X_test_aggregated)
+y_pred_dpoy_2025 = rf_dpoy.predict(X_test_aggregated)
+y_pred_mip_2025 = rf_mip.predict(X_test_aggregated)
+
+predictions_2025 = pd.DataFrame({
+    'player': test_data_aggregated['player_x'],
+    'predicted_mvp_share': y_pred_mvp_2025,
+    'predicted_dpoy_share': y_pred_dpoy_2025,
+    'predicted_mip_share': y_pred_mip_2025
+})
+```
+Finally, we'll rank the players based on their expected award share for each award and display the top 10 most likely winners.
+```python
+predictions_2025_mvp = predictions_2025.sort_values(by='predicted_mvp_share', ascending=False)
+predictions_2025_dpoy = predictions_2025.sort_values(by='predicted_dpoy_share', ascending=False)
+predictions_2025_mip = predictions_2025.sort_values(by='predicted_mip_share', ascending=False)
+
+print("Top 10 Predicted MVPs for 2025 (Share):")
+print(predictions_2025_mvp.head(10))
+
+print("\nTop 10 Predicted DPOYs for 2025 (Share):")
+print(predictions_2025_dpoy.head(10))
+
+print("\nTop 10 Predicted MIPs for 2025 (Share):")
+print(predictions_2025_mip.head(10))
+```
+We're finally done! Time to take a look at our results.
 
 ## Visualization
+First, let's look at which factors have the largest influence on our predictions. 
+
 
 ## Insights and Conclusions
 
